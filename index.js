@@ -1,13 +1,30 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const mongoose = require('mongoose')
+const Contact = require('./models/person')
 const app = express()
+const password = process.argv[2]
 
 app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
 morgan.token('dat', function (req, res) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :dat'))
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+// this has to be the last loaded middleware.
+app.use(errorHandler)
 
 let persons = [
     { 
@@ -38,15 +55,21 @@ app.get('/', (request, response) => {
 })
   
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Contact.find({}).then(contacts => {
+    response.json(contacts)
+  })
 })
 
-app.get(`/api/persons/:id`, (request,response) => {
-  const id = Number(request.params.id)
-  const person = persons.find(i => i.id === id)
-  person
-  ? response.send(`<h2>Name: ${person.name}</h2><br><p>Number: ${person.number}</p>`) 
-  : response.status(404).end()
+app.get(`/api/persons/:id`, (request,response,next) => {
+  Contact.findById(request.params.id)
+  .then(person => {
+    if(person) {
+      response.json(person)
+    } else {
+      response.status(404).end()
+    }
+  })
+  .catch(error => next(error))
 })
 
 
@@ -63,12 +86,6 @@ const generateRandomId = () => {
 app.post('/api/persons', (request, response) => {
   
   const body = request.body
-
-  const person = {
-    id: generateRandomId(),
-    name: body.name,
-    number: body.number,
-  }
 
   persons.find(p=>{
     if(p.name === body.name){
@@ -90,16 +107,43 @@ app.post('/api/persons', (request, response) => {
     })
   }
   
-  persons = persons.concat(person)
-  response.json(person)
+  const person = new Contact({
+    id: generateRandomId(),
+    name: body.name,
+    number: body.number,
+  })
+
+  person.save().then(savedContact => {
+    response.json(savedContact)
+  })
+  //persons = persons.concat(person)
+  //response.json(person)
 })
 
 //DELETE CONTACT
-app.delete('/api/persons/:id', (request,response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(p=> p.id !== id)
+app.delete('/api/persons/:id', (request,response,next) => {
+  Contact.findByIdAndRemove(request.params.id)
+  .then(result => {
+    response.status(204).end()
+  })
+  .catch(error => next(error))
+})
 
-  response.status(204).end()
+
+//UPDATE CONTACT
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+
+  const contact = {
+    name: body.name,
+    number: body.number,
+  }
+
+  Contact.findByIdAndUpdate(request.params.id, note, { new: true })
+    .then(updatedContact => {
+      response.json(updatedContact)
+    })
+    .catch(error => next(error))
 })
 
 //DISPLAY INFO PAGE
@@ -110,6 +154,6 @@ app.get('/info', (request, response) => {
 })
 
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT)
 console.log(`Server running on port ${PORT}`);
