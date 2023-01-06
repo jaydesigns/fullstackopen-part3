@@ -111,7 +111,7 @@ app.post('/api/persons', (request, response, next) => {
 //DELETE CONTACT
 app.delete('/api/persons/:id', (request,response,next) => {
   Contact.findByIdAndRemove(request.params.id)
-    .then(response => {
+    .then(result => {
       response.status(204).end()
     })
     .catch(error => next(error))
