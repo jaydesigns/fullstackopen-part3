@@ -1,1 +1,12 @@
 DELETE http://localhost:3001/api/persons/3
+
+###
+
+PUT http://localhost:3001/api/persons/6361ea98f347edcae4362b9b
+
+Content-Type: application/json
+
+{
+    "name": "Jay Indino",
+    "number": "117"
+}
