@@ -1,2 +1,1 @@
-# fullstackopen-part3
- Exercises for Part 3 of FullStackOpen by University of Helsinki
+I would like to apologize for the mistake. I didn't realize I committed the wrong folder from my local machine when I submitted the link. However, I already corrected the wrong submission.
