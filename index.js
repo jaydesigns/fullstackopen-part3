@@ -1,6 +1,9 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
+
+app.use(cors())
 
 morgan.token('reqBody',function(req,res){return JSON.stringify(req.body)})
 app.use(express.json())
@@ -31,64 +34,64 @@ let persons = [
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello World!</h1>')
-  })
+})
   
-  app.get('/api/persons', (request, response) => {
-    response.json(persons)
-  })
+app.get('/api/persons', (request, response) => {
+  response.json(persons)
+})
   
-  app.get('/info', (request,response) => {
-    const time = new Date()
-    response.send(`<h5>Phonebook has info for ${persons.length} people.</h5><p>${time}</p>`)
-  })
+app.get('/info', (request,response) => {
+  const time = new Date()
+  response.send(`<h5>Phonebook has info for ${persons.length} people.</h5><p>${time}</p>`)
+})
 
-  app.get('/api/persons/:id', (request, response, next) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id)
+app.get('/api/persons/:id', (request, response, next) => {
+  const id = Number(request.params.id)
+  const person = persons.find(person => person.id === id)
 
-    if(person){
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
-  })
+  if(person){
+      response.json(person)
+  } else {
+      response.status(404).end()
+  }
+})
 
-  app.delete('/api/persons/:id', (request,response)=>{
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
+app.delete('/api/persons/:id', (request,response)=>{
+  const id = Number(request.params.id)
+  persons = persons.filter(person => person.id !== id)
 
-    response.status(204).end()
-  })
+  response.status(204).end()
+})
 
-  const generateRandomId = () =>{
-    return Math.floor(Math.random()*999999999)
+const generateRandomId = () =>{
+  return Math.floor(Math.random()*999999999)
+}
+
+app.post('/api/persons', (request,response) => {
+  const body = request.body
+
+  if (!body.name || !body.number){
+      return response.status(404).json({
+          error: "Name or number is missing"
+      })
+  } else if (persons.find(person => person.name === body.name)){
+      return response.status(404).json({
+          error: "Contact already exists"
+      })
   }
 
-  app.put('/api/persons', (request,response) => {
-    const body = request.body
+  const person = {
+      id: generateRandomId(),
+      name: body.name,
+      number: body.number
+  }
 
-    if (!body.name || !body.number){
-        return response.status(404).json({
-            error: "Name or number is missing"
-        })
-    } else if (persons.find(person => person.name === body.name)){
-        return response.status(404).json({
-            error: "Contact already exists"
-        })
-    }
+  persons = persons.concat(person)
+  console.log(request.body);
+  response.json(person)
+})
 
-    const person = {
-        id: generateRandomId(),
-        name: body.name,
-        number: body.number
-    }
-
-    persons = persons.concat(person)
-    console.log(request.body);
-    response.json(person)
-  })
-
-  const PORT = 3001
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-  })
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
