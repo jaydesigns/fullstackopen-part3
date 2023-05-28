@@ -1,13 +1,22 @@
-DELETE http://localhost:3001/api/persons/790841449
+DELETE http://localhost:3001/api/persons/6457d6bfb65dc0f86422b669
 
 ###
 POST http://localhost:3001/api/persons/
 Content-Type: application/json
 
 {
-    "name": "Mia", 
-    "number": "109232434"
+    "name": "Jayson Tatum", 
+    "number": "981234"
 }
 
 ###
 GET http://localhost:3001/api/persons
+
+###
+PUT http://localhost:3001/api/persons/6472a8fdaff425de6896caa7
+Content-Type: application/json
+
+{
+    "name": "Jayson Tatum", 
+    "number": "999888777"
+}
