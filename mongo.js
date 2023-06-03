@@ -10,28 +10,28 @@ mongoose.set('strictQuery',false)
 mongoose.connect(url)
 
 const contactSchema = new mongoose.Schema({
-  name: String,
-  number: Number,
+	name: String,
+	number: Number,
 })
 
 const Contact = mongoose.model('Contact', contactSchema)
 
 const person = new Contact({
-  name: process.argv[3],
-  number: process.argv[4],
+	name: process.argv[3],
+	number: process.argv[4],
 })
 
 if (process.argv.length<4){
-  Contact.find({}).then(result => {
-    console.log("phonebook:");
-    result.forEach(note => {
-      console.log(`${note.name} ${note.number}`)
-    })
-    mongoose.connection.close()
-  })
+	Contact.find({}).then(result => {
+		console.log('phonebook:')
+		result.forEach(note => {
+			console.log(`${note.name} ${note.number}`)
+		})
+		mongoose.connection.close()
+	})
 } else {
-  person.save().then(result => {
-    console.log(`added ${person.name} number ${person.number} to phonebook`)
-    mongoose.connection.close()
-  })
+	person.save().then(result => {
+		console.log(`added ${person.name} number ${person.number} to phonebook`)
+		mongoose.connection.close()
+	})
 }
