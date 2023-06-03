@@ -73,10 +73,10 @@ const generateRandomId = () =>{
   return Math.floor(Math.random()*999999999)
 }
 
-app.post('/api/persons', (request,response) => {
+app.post('/api/persons', (request,response,next) => {
   const body = request.body
 
-  if (!body.name || !body.number){
+  /* if (!body.name || !body.number){
       return response.status(404).json({
           error: "Name or number is missing"
       })
@@ -84,7 +84,7 @@ app.post('/api/persons', (request,response) => {
       return response.status(404).json({
           error: "Contact already exists"
       })
-  }
+  } */
 
   const person = new Contact({
       id: generateRandomId(),
@@ -95,17 +95,18 @@ app.post('/api/persons', (request,response) => {
   person.save().then(savedPerson=>{
     response.json(savedPerson)
   })
+  .catch(error=>next(error))
 })
 
 app.put('/api/persons/:id',(request,response,next)=>{
-  const body=request.body
+  const {name,number}=request.body
 
-  const person = {
+  /* const person = {
     name: body.name,
     number: body.number,
-  }
+  } */
 
-  Contact.findByIdAndUpdate(request.params.id, person, {new:true})
+  Contact.findByIdAndUpdate(request.params.id, {name,number}, {new:true, runValidators: true, context: 'query'})
   .then(updatedContact => {
     response.json(updatedContact)
   })
@@ -117,6 +118,8 @@ const errorHandler = (error,request,response,next)=>{
 
   if (error.name === 'CastError') {
     return response.status(400).send({error: "malformatted id"})
+  } else if (error.name === "ValidationError") {
+    return response.status(404).json({error:error.message})
   }
   next(error)
 }
